@@ -1,0 +1,36 @@
+name: Notify to Feishu
+
+on:
+  pull_request:
+    types: [opened, edited, closed, reopened, synchronize]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v3
+
+      - name: Print GitHub event data
+        run: |
+          echo "=== GitHub Event Data ==="
+          cat $GITHUB_EVENT_PATH
+          echo "=== End of Event Data ==="
+
+      # - name: 设置 Node.js 环境
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '18'
+      #     cache: 'npm'
+
+      # - name: 安装依赖
+      #   run: npm ci
+
+      # - name: 构建 TypeScript 代码
+      #   run: npm run build
+
+      # - name: 发送飞书通知
+      #   env:
+      #     FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+      #     GITHUB_EVENT_PATH: ${{ github.event_path }}
+      #   run: npm start
