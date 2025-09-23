@@ -24,9 +24,6 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildPRSummary(pr.action, pr.state, pr.merged, pr),
-          ...(pr.body !== ""
-            ? [{ tag: "hr" }, this.buildCommentElement(pr.body)]
-            : []),
           this.buildURLButton(pr.html_url),
         ],
       },
@@ -53,9 +50,6 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildIssueSummary(issue.action, issue.state, issue),
-          ...(issue.body !== ""
-            ? [{ tag: "hr" }, this.buildCommentElement(issue.body)]
-            : []),
           this.buildURLButton(issue.html_url),
         ],
       },
@@ -82,9 +76,7 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildCommentSummary(comment),
-          ...(comment.body !== ""
-            ? [{ tag: "hr" }, this.buildCommentElement(comment.body)]
-            : []),
+          this.buildCommentElement(comment.body),
           this.buildURLButton(comment.html_url),
         ],
       },
@@ -127,16 +119,16 @@ export class CardBuilder {
     const authorInfo = `[@${pr.sender.login}](${pr.sender.html_url})`;
     const branchInfo = `(<text_tag color='neutral'>${pr.head.label}</text_tag> → <text_tag color='neutral'>${pr.base.label}</text_tag> )`;
 
-    if (merged) content = `${authorInfo} 合并了 Pull request ${branchInfo}`;
+    if (merged) content = `${authorInfo} 合并了这项 Pull request ${branchInfo}`;
     else if (state === "closed" && !merged)
-      content = `${authorInfo} 关闭了 Pull request ${branchInfo}`;
+      content = `${authorInfo} 关闭了这项 Pull request ${branchInfo}`;
     else if (action === "reopened")
-      content = `${authorInfo} 重新打开了 Pull request ${branchInfo}`;
+      content = `${authorInfo} 重新打开了这项 Pull request ${branchInfo}`;
     else if (action === "opened" || "ready_for_review")
-      content = `${authorInfo} 创建了新 Pull request ${branchInfo}`;
+      content = `${authorInfo} 创建了一项新 Pull request ${branchInfo}`;
     else if (action === "review_requested")
-      content = `${authorInfo} 请求代码审查 Pull request ${branchInfo}`;
-    else content = `${authorInfo} 更新了 Pull request`;
+      content = `${authorInfo} 请求对这项 Pull request 开展代码审查${branchInfo}`;
+    else content = `${authorInfo} 更新了这项 Pull request`;
 
     return {
       tag: "div",
@@ -159,10 +151,11 @@ export class CardBuilder {
   ): BaseCardElement {
     let content = "";
     const authorInfo = `[@${issue.sender.login}](${issue.sender.html_url})`;
-    if (state === "closed") content = `${authorInfo} 关闭了 Issue`;
-    else if (action === "reopened") content = `${authorInfo} 重新打开了 Issue`;
-    else if (action === "opened") content = `${authorInfo} 创建了新 Issue`;
-    else content = `${authorInfo} 更新了 Issue`;
+    if (state === "closed") content = `${authorInfo} 关闭了这项 Issue`;
+    else if (action === "reopened")
+      content = `${authorInfo} 重新打开了这项 Issue`;
+    else if (action === "opened") content = `${authorInfo} 创建了一项新 Issue`;
+    else content = `${authorInfo} 更新了这项 Issue`;
 
     return {
       tag: "div",
@@ -180,7 +173,7 @@ export class CardBuilder {
 
   private buildCommentSummary(comment: GitHubCommentInfo): BaseCardElement {
     const authorInfo = `[@${comment.sender.login}](${comment.sender.html_url})`;
-    const content = `${authorInfo} 添加了新评论`;
+    const content = `${authorInfo} 添加了一条新评论：`;
 
     return {
       tag: "div",
@@ -190,7 +183,7 @@ export class CardBuilder {
       },
       icon: {
         tag: "standard_icon",
-        token: "yes_outlined",
+        token: "bell_outlined",
         color: "blue",
       },
     };
