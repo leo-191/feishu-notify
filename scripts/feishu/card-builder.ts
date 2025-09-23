@@ -1,3 +1,4 @@
+import { json } from "stream/consumers";
 import { BaseCardElement, BaseText, FeishuCard } from "./feishu-card";
 import { FeishuWebhookPayload, GithubPRInfo, GithubIssueInfo } from "./types";
 export class CardBuilder {
@@ -14,22 +15,14 @@ export class CardBuilder {
           "pull_request",
           pr.number
         ),
-        subtitle: this.getPRHeaderSubtitle(
-          pr.action,
-          pr.state,
-          pr.merged,
-          pr.sender.login,
-          pr
-        ),
         template: "blue",
       },
       body: {
         elements: [
-          this.buildCommentElement(pr.body),
-          this.buildAuthorElement(pr.sender.login, pr.sender.html_url),
-          this.buildTimeElement(
-            pr.action === "opened" ? pr.created_at : pr.updated_at
-          ),
+          this.buildPRSummary(pr.action, pr.state, pr.merged, pr),
+          ...(pr.body !== ""
+            ? [{ tag: "hr" }, this.buildCommentElement(pr.body)]
+            : []),
           this.buildURLButton(pr.html_url),
         ],
       },
@@ -51,24 +44,19 @@ export class CardBuilder {
           "issue",
           issue.number
         ),
-        subtitle: this.getIssueHeaderSubtitle(
-          issue.action,
-          issue.state,
-          issue.sender.login
-        ),
         template: "blue",
       },
       body: {
         elements: [
-          this.buildCommentElement(issue.body),
-          this.buildAuthorElement(issue.sender.login, issue.sender.html_url),
-          this.buildTimeElement(
-            issue.action === "opened" ? issue.created_at : issue.updated_at
-          ),
+          this.buildIssueSummary(issue.action, issue.state, issue),
+          ...(issue.body !== ""
+            ? [{ tag: "hr" }, this.buildCommentElement(issue.body)]
+            : []),
           this.buildURLButton(issue.html_url),
         ],
       },
     };
+
     return {
       msg_type: "interactive",
       card: card,
@@ -96,68 +84,27 @@ export class CardBuilder {
       };
   }
 
-  private getPRHeaderSubtitle(
+  private buildPRSummary(
     action: string,
     state: string,
     merged: boolean,
-    operator: string,
     pr: GithubPRInfo
-  ): BaseText {
+  ): BaseCardElement {
     let content = "";
-    if (merged)
-      content = `@**${operator}** 合并了 Pull request \`${pr.head.label}\` → \`${pr.base.label}\``;
+    const authorInfo = `[@${pr.sender.login}](${pr.sender.html_url})`;
+    const branchInfo = `(<text_tag color='neutral'>${pr.head.label}</text_tag> → <text_tag color='neutral'>${pr.base.label}</text_tag> )`;
+
+    if (merged) content = `${authorInfo} 合并了 Pull request ${branchInfo}`;
     else if (state === "closed" && !merged)
-      content = `@**${operator}** 关闭了 Pull request`;
+      content = `${authorInfo} 关闭了 Pull request ${branchInfo}`;
     else if (action === "reopened")
-      content = `@**${operator}** 重新打开了 Pull request`;
+      content = `${authorInfo} 重新打开了 Pull request ${branchInfo}`;
     else if (action === "opened" || "ready_for_review")
-      content = `@**${operator}** 创建了新 Pull request`;
+      content = `${authorInfo} 创建了新 Pull request ${branchInfo}`;
     else if (action === "review_requested")
-      content = `@**${operator}** 请求代码审查 Pull request`;
-    else content = `@**${operator}** 更新了 Pull request`;
+      content = `${authorInfo} 请求代码审查 Pull request ${branchInfo}`;
+    else content = `${authorInfo} 更新了 Pull request`;
 
-    return {
-      tag: "lark_md",
-      content: content,
-    };
-  }
-
-  private getIssueHeaderSubtitle(
-    action: string,
-    state: string,
-    operator: string
-  ): BaseText {
-    let content = "";
-    if (state === "closed") content = `**${operator}** 关闭了 Issue`;
-    else if (action === "reopened")
-      content = `@**${operator}** 重新打开了 Issue`;
-    else if (action === "opened")
-      content = `@**${operator}** 创建了新 Issue`;
-    else content = `@**${operator}** 更新了 Issue`;
-
-    return {
-      tag: "lark_md",
-      content: content,
-    };
-  }
-
-  private buildCommentElement(comment: string): BaseCardElement {
-    return {
-      tag: "div",
-      text: {
-        tag: "lark_md",
-        content: comment,
-      },
-    };
-  }
-
-  /**
-   * 构建作者信息元素
-   */
-  private buildAuthorElement(operator: string, url?: string): BaseCardElement {
-    let content = "";
-    if (url) content = `**操作用户**: [${operator}](${url})`;
-    else content = `**操作用户**: ${operator}`;
     return {
       tag: "div",
       text: {
@@ -167,10 +114,44 @@ export class CardBuilder {
     };
   }
 
-  /**
-   * 构建时间信息元素
-   */
-  private buildTimeElement(time: string): BaseCardElement {
+  private buildIssueSummary(
+    action: string,
+    state: string,
+    issue: GithubIssueInfo
+  ): BaseCardElement {
+    let content = "";
+    const authorInfo = `[@${issue.sender.login}](${issue.sender.html_url})`;
+    if (state === "closed") content = `${authorInfo} 关闭了 Issue`;
+    else if (action === "reopened") content = `${authorInfo} 重新打开了 Issue`;
+    else if (action === "opened") content = `${authorInfo} 创建了新 Issue`;
+    else content = `${authorInfo} 更新了 Issue`;
+
+    return {
+      tag: "div",
+      text: {
+        tag: "lark_md",
+        content: content,
+      },
+    };
+  }
+
+  private buildCommentElement(comment: string): BaseCardElement {
+    return {
+      tag: "markdown",
+      content: comment,
+      icon: {
+        tag: "standard_icon",
+        token: "chat_outlined",
+        color: "blue",
+      },
+    };
+  }
+
+  private buildTimestampElement(
+    operator: string,
+    url: string,
+    time: string
+  ): BaseCardElement {
     const formattedTime = new Date(time).toLocaleString("zh-CN", {
       timeZone: "Asia/Shanghai",
       year: "numeric",
@@ -186,7 +167,7 @@ export class CardBuilder {
       tag: "div",
       text: {
         tag: "lark_md",
-        content: `**操作时间**: ${formattedTime}`,
+        content: `[@${operator}](${url}) | ${formattedTime}`,
       },
     };
   }
