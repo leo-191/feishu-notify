@@ -26,11 +26,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # - name: Print GitHub Event Data
-      #   run: |
-      #     echo "=== GitHub Event Data ==="
-      #     cat $GITHUB_EVENT_PATH
-      #     echo "=== End of Event Data ==="
+      - name: Print GitHub Event Data
+        run: |
+          echo "=== GitHub Event Data ==="
+          cat $GITHUB_EVENT_PATH
+          echo "=== End of Event Data ==="
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
