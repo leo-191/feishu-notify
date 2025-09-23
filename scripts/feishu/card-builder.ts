@@ -1,27 +1,35 @@
 import { BaseCardElement, BaseText, FeishuCard } from "./feishu-card";
-import { FeishuWebhookPayload, GithubPRInfo } from "./types";
+import { FeishuWebhookPayload, GithubPRInfo, GithubIssueInfo } from "./types";
 export class CardBuilder {
   /**
    * 根据PR信息构建飞书消息卡片
    */
-  buildPrCard(pr: GithubPRInfo): FeishuWebhookPayload {
+  buildPRCard(pr: GithubPRInfo): FeishuWebhookPayload {
     const card: FeishuCard = {
       schema: "2.0",
       header: {
-        title: this.getPRHeaderTitle(pr.full_name, pr.title, pr.number),
+        title: this.getHeaderTitle(
+          pr.full_name,
+          pr.title,
+          "pull_request",
+          pr.number
+        ),
         subtitle: this.getPRHeaderSubtitle(
           pr.action,
           pr.state,
           pr.merged,
-          pr.number,
+          pr.sender.login,
           pr
         ),
         template: "blue",
       },
       body: {
         elements: [
-          this.buildAuthorElement(pr),
-          this.buildTimeElement(pr),
+          this.buildCommentElement(pr.body),
+          this.buildAuthorElement(pr.sender.login, pr.sender.html_url),
+          this.buildTimeElement(
+            pr.action === "opened" ? pr.created_at : pr.updated_at
+          ),
           this.buildURLButton(pr.html_url),
         ],
       },
@@ -33,53 +41,80 @@ export class CardBuilder {
     };
   }
 
-  /**
-   * 根据PR状态获取头部颜色模板
-   */
-  // private getHeaderTemplate(
-  //   action: string,
-  //   state: string,
-  //   merged?: boolean
-  // ): "green" | "red" | "blue" | "orange" {
-  //   if (merged) return "green";
-  //   if (state === "closed" && !merged) return "red";
-  //   if (action === "opened" || action === "reopened") return "blue";
-  //   return "orange";
-  // }
+  buildIssueCard(issue: GithubIssueInfo): FeishuWebhookPayload {
+    const card: FeishuCard = {
+      schema: "2.0",
+      header: {
+        title: this.getHeaderTitle(
+          issue.full_name,
+          issue.title,
+          "issue",
+          issue.number
+        ),
+        subtitle: this.getIssueHeaderSubtitle(
+          issue.action,
+          issue.state,
+          issue.sender.login
+        ),
+        template: "blue",
+      },
+      body: {
+        elements: [
+          this.buildCommentElement(issue.body),
+          this.buildAuthorElement(issue.sender.login, issue.sender.html_url),
+          this.buildTimeElement(
+            issue.action === "opened" ? issue.created_at : issue.updated_at
+          ),
+          this.buildURLButton(issue.html_url),
+        ],
+      },
+    };
+    return {
+      msg_type: "interactive",
+      card: card,
+    };
+  }
 
   /**
    * 构建头部标题
    */
-  private getPRHeaderTitle(
-    full_name: string,
+  private getHeaderTitle(
+    fullName: string,
     title: string,
+    eventType: "pull_request" | "issue",
     number: number
   ): BaseText {
-    return {
-      tag: "plain_text",
-      content: `[${full_name}] ${title} (PR #${number})`,
-    };
+    if (eventType === "pull_request")
+      return {
+        tag: "plain_text",
+        content: `[${fullName}] ${title} (PR #${number})`,
+      };
+    else
+      return {
+        tag: "plain_text",
+        content: `[${fullName}] ${title} (Issue #${number})`,
+      };
   }
 
   private getPRHeaderSubtitle(
     action: string,
     state: string,
     merged: boolean,
-    number: number,
+    operator: string,
     pr: GithubPRInfo
   ): BaseText {
     let content = "";
     if (merged)
-      content = `**${pr.sender.login}** 合并了 PR #${number} \`${pr.head.label}\` → \`${pr.base.label}\``;
+      content = `@**${operator}** 合并了 Pull request \`${pr.head.label}\` → \`${pr.base.label}\``;
     else if (state === "closed" && !merged)
-      content = `**${pr.sender.login}** 关闭了 PR #${number}`;
+      content = `@**${operator}** 关闭了 Pull request`;
     else if (action === "reopened")
-      content = `**${pr.sender.login}** 重新打开了 PR #${number}`;
+      content = `@**${operator}** 重新打开了 Pull request`;
     else if (action === "opened" || "ready_for_review")
-      content = `**${pr.sender.login}** 创建了新 PR #${number}`;
+      content = `@**${operator}** 创建了新 Pull request`;
     else if (action === "review_requested")
-      content = `**${pr.sender.login}** 请求代码审查 PR #${number}`;
-    else content = `**${pr.sender.login}** 更新了 PR #${number}`;
+      content = `@**${operator}** 请求代码审查 Pull request`;
+    else content = `@**${operator}** 更新了 Pull request`;
 
     return {
       tag: "lark_md",
@@ -87,15 +122,47 @@ export class CardBuilder {
     };
   }
 
-  /**
-   * 构建作者信息元素
-   */
-  private buildAuthorElement(pr: GithubPRInfo): BaseCardElement {
+  private getIssueHeaderSubtitle(
+    action: string,
+    state: string,
+    operator: string
+  ): BaseText {
+    let content = "";
+    if (state === "closed") content = `**${operator}** 关闭了 Issue`;
+    else if (action === "reopened")
+      content = `@**${operator}** 重新打开了 Issue`;
+    else if (action === "opened")
+      content = `@**${operator}** 创建了新 Issue`;
+    else content = `@**${operator}** 更新了 Issue`;
+
+    return {
+      tag: "lark_md",
+      content: content,
+    };
+  }
+
+  private buildCommentElement(comment: string): BaseCardElement {
     return {
       tag: "div",
       text: {
         tag: "lark_md",
-        content: `**操作用户**: [${pr.sender.login}](${pr.sender.html_url})`,
+        content: comment,
+      },
+    };
+  }
+
+  /**
+   * 构建作者信息元素
+   */
+  private buildAuthorElement(operator: string, url?: string): BaseCardElement {
+    let content = "";
+    if (url) content = `**操作用户**: [${operator}](${url})`;
+    else content = `**操作用户**: ${operator}`;
+    return {
+      tag: "div",
+      text: {
+        tag: "lark_md",
+        content: content,
       },
     };
   }
@@ -103,9 +170,17 @@ export class CardBuilder {
   /**
    * 构建时间信息元素
    */
-  private buildTimeElement(pr: GithubPRInfo): BaseCardElement {
-    const time = pr.action === "opened" ? pr.created_at : pr.updated_at;
-    const formattedTime = new Date(time).toLocaleString();
+  private buildTimeElement(time: string): BaseCardElement {
+    const formattedTime = new Date(time).toLocaleString("zh-CN", {
+      timeZone: "Asia/Shanghai",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
 
     return {
       tag: "div",

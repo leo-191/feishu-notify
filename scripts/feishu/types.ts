@@ -28,3 +28,19 @@ export interface GithubPRInfo {
     label: string;
   };
 }
+
+export interface GithubIssueInfo{
+  action: string;
+  number: number;
+  full_name: string;
+  title: string;
+  body: string;
+  html_url: string;
+  sender: {
+    login: string;
+    html_url: string;
+  };
+  state: string;
+  created_at: string;
+  updated_at: string;
+}
