@@ -47,4 +47,4 @@ jobs:
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
-        run: npm handle -- --event-type ${{ github.event_name }}
+        run: npm run handle -- --event-type ${{ github.event_name }}
