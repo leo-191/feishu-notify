@@ -1,6 +1,10 @@
 import { FeishuBotClient } from "./feishu/client";
 import { CardBuilder } from "./feishu/card-builder";
-import { GithubPRInfo, GithubIssueInfo } from "./feishu/types";
+import {
+  GithubPRInfo,
+  GithubIssueInfo,
+  GitHubCommentInfo,
+} from "./feishu/types";
 
 function getEventTypeFromArgs(): string {
   const args = process.argv.slice(2);
@@ -11,8 +15,8 @@ function getEventTypeFromArgs(): string {
   }
 
   const eventType = args[eventTypeIndex + 1];
-  if (!["pull_request", "issue"].includes(eventType)) {
-    throw new Error("事件类型必须是 pull_request 或 issue");
+  if (!["pull_request", "issues", "issue_comment"].includes(eventType)) {
+    throw new Error("事件类型必须是 pull_request, issues 或 issue_comment");
   }
 
   return eventType;
@@ -65,7 +69,7 @@ async function run() {
 
       const cardBuilder = new CardBuilder();
       card = cardBuilder.buildPRCard(PRInfo);
-    } else if (eventType === "issue") {
+    } else if (eventType === "issues") {
       const issueInfo: GithubIssueInfo = {
         action: eventData.action,
         number: eventData.issue.number,
@@ -86,6 +90,27 @@ async function run() {
 
       const cardBuilder = new CardBuilder();
       card = cardBuilder.buildIssueCard(issueInfo);
+    } else if (eventType === "issue_comment") {
+      const commentInfo: GitHubCommentInfo = {
+        action: eventData.action,
+        number: eventData.issue.number,
+        issue_type: eventData.issue.pull_request ? "pull_request" : "issues",
+        full_name: eventData.repository.full_name,
+        title: eventData.issue.title,
+        body: eventData.comment.body || "",
+        html_url: eventData.comment.html_url,
+        sender: {
+          login: eventData.sender.login,
+          html_url: eventData.sender.html_url,
+        },
+        created_at: eventData.comment.created_at,
+        updated_at: eventData.comment.updated_at,
+      };
+
+      console.log("处理 Issue Comment 信息:", commentInfo);
+
+      const cardBuilder = new CardBuilder();
+      card = cardBuilder.buildCommentCard(commentInfo);
     } else {
       throw new Error(`未知的事件类型: ${eventType}`);
     }

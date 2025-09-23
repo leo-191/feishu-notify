@@ -1,6 +1,10 @@
-import { json } from "stream/consumers";
 import { BaseCardElement, BaseText, FeishuCard } from "./feishu-card";
-import { FeishuWebhookPayload, GithubPRInfo, GithubIssueInfo } from "./types";
+import {
+  FeishuWebhookPayload,
+  GitHubCommentInfo,
+  GithubIssueInfo,
+  GithubPRInfo,
+} from "./types";
 export class CardBuilder {
   /**
    * 根据PR信息构建飞书消息卡片
@@ -41,7 +45,7 @@ export class CardBuilder {
         title: this.getHeaderTitle(
           issue.full_name,
           issue.title,
-          "issue",
+          "issues",
           issue.number
         ),
         template: "blue",
@@ -63,13 +67,42 @@ export class CardBuilder {
     };
   }
 
+  buildCommentCard(comment: GitHubCommentInfo): FeishuWebhookPayload {
+    const card: FeishuCard = {
+      schema: "2.0",
+      header: {
+        title: this.getHeaderTitle(
+          comment.full_name,
+          comment.title,
+          comment.issue_type,
+          comment.number
+        ),
+        template: "blue",
+      },
+      body: {
+        elements: [
+          this.buildCommentSummary(comment),
+          ...(comment.body !== ""
+            ? [{ tag: "hr" }, this.buildCommentElement(comment.body)]
+            : []),
+          this.buildURLButton(comment.html_url),
+        ],
+      },
+    };
+
+    return {
+      msg_type: "interactive",
+      card: card,
+    };
+  }
+
   /**
    * 构建头部标题
    */
   private getHeaderTitle(
     fullName: string,
     title: string,
-    eventType: "pull_request" | "issue",
+    eventType: "pull_request" | "issues",
     number: number
   ): BaseText {
     if (eventType === "pull_request")
@@ -111,6 +144,11 @@ export class CardBuilder {
         tag: "lark_md",
         content: content,
       },
+      icon: {
+        tag: "standard_icon",
+        token: "yes_outlined",
+        color: "blue",
+      },
     };
   }
 
@@ -131,6 +169,29 @@ export class CardBuilder {
       text: {
         tag: "lark_md",
         content: content,
+      },
+      icon: {
+        tag: "standard_icon",
+        token: "yes_outlined",
+        color: "blue",
+      },
+    };
+  }
+
+  private buildCommentSummary(comment: GitHubCommentInfo): BaseCardElement {
+    const authorInfo = `[@${comment.sender.login}](${comment.sender.html_url})`;
+    const content = `${authorInfo} 添加了新评论`;
+
+    return {
+      tag: "div",
+      text: {
+        tag: "lark_md",
+        content: content,
+      },
+      icon: {
+        tag: "standard_icon",
+        token: "yes_outlined",
+        color: "blue",
       },
     };
   }

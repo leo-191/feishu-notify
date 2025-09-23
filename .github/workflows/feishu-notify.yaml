@@ -26,25 +26,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Print GitHub Event Data
-        run: |
-          echo "=== GitHub Event Data ==="
-          cat $GITHUB_EVENT_PATH
-          echo "=== End of Event Data ==="
+      # - name: Print GitHub Event Data
+      #   run: |
+      #     echo "=== GitHub Event Data ==="
+      #     cat $GITHUB_EVENT_PATH
+      #     echo "=== End of Event Data ==="
 
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: "20"
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
 
-      # - name: Install Dependencies
-      #   run: npm ci
+      - name: Install Dependencies
+        run: npm ci
 
-      # - name: Build TypeScript
-      #   run: npm run build
+      - name: Build TypeScript
+        run: npm run build
 
-      # - name: Notify to Feishu
-      #   env:
-      #     FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
-      #     GITHUB_EVENT_PATH: ${{ github.event_path }}
-      #   run: npm handle -- --event-type ${{ github.event_name }}
+      - name: Notify to Feishu
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: npm handle -- --event-type ${{ github.event_name }}
