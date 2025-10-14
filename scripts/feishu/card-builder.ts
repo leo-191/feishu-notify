@@ -24,6 +24,9 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildPRSummary(pr.action, pr.state, pr.merged, pr),
+          ...(pr.body !== ""
+            ? [{ tag: "hr" }, this.buildCommentElement(pr.body)]
+            : []),
           this.buildURLButton(pr.html_url),
         ],
       },
@@ -50,6 +53,9 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildIssueSummary(issue.action, issue.state, issue),
+          ...(issue.body !== ""
+            ? [{ tag: "hr" }, this.buildCommentElement(issue.body)]
+            : []),
           this.buildURLButton(issue.html_url),
         ],
       },
@@ -116,19 +122,30 @@ export class CardBuilder {
     pr: GithubPRInfo
   ): BaseCardElement {
     let content = "";
+    let iconToken = "";
+    let iconColor = "blue";
     const authorInfo = `[@${pr.sender.login}](${pr.sender.html_url})`;
     const branchInfo = `(<text_tag color='neutral'>${pr.head.label}</text_tag> → <text_tag color='neutral'>${pr.base.label}</text_tag> )`;
 
-    if (merged) content = `${authorInfo} 合并了这项 Pull request ${branchInfo}`;
-    else if (state === "closed" && !merged)
+    if (merged) {
+      content = `${authorInfo} 合并了这项 Pull request ${branchInfo}`;
+      iconToken = "yes_outlined";
+    } else if (state === "closed" && !merged) {
       content = `${authorInfo} 关闭了这项 Pull request ${branchInfo}`;
-    else if (action === "reopened")
+      iconToken = "more-close_outlined";
+      iconColor = "red";
+    } else if (action === "reopened") {
       content = `${authorInfo} 重新打开了这项 Pull request ${branchInfo}`;
-    else if (action === "opened" || "ready_for_review")
+      iconToken = "replace_outlined";
+    } else if (action === "opened" || "ready_for_review") {
       content = `${authorInfo} 创建了一项新 Pull request ${branchInfo}`;
-    else if (action === "review_requested")
+    } else if (action === "review_requested") {
       content = `${authorInfo} 请求对这项 Pull request 开展代码审查${branchInfo}`;
-    else content = `${authorInfo} 更新了这项 Pull request`;
+      iconToken = "member-new_outlined";
+    } else {
+      content = `${authorInfo} 更新了这项 Pull request`;
+      iconToken = "replace_outlined";
+    }
 
     return {
       tag: "div",
@@ -138,8 +155,8 @@ export class CardBuilder {
       },
       icon: {
         tag: "standard_icon",
-        token: "yes_outlined",
-        color: "blue",
+        token: iconToken,
+        color: iconColor,
       },
     };
   }
@@ -150,12 +167,22 @@ export class CardBuilder {
     issue: GithubIssueInfo
   ): BaseCardElement {
     let content = "";
+    let iconToken = "";
+    let iconColor = "blue";
     const authorInfo = `[@${issue.sender.login}](${issue.sender.html_url})`;
-    if (state === "closed") content = `${authorInfo} 关闭了这项 Issue`;
-    else if (action === "reopened")
+    if (state === "closed") {
+      content = `${authorInfo} 关闭了这项 Issue`;
+      iconToken = "yes_outlined";
+    } else if (action === "reopened") {
       content = `${authorInfo} 重新打开了这项 Issue`;
-    else if (action === "opened") content = `${authorInfo} 创建了一项新 Issue`;
-    else content = `${authorInfo} 更新了这项 Issue`;
+      iconToken = "replace_outlined";
+    } else if (action === "opened") {
+      content = `${authorInfo} 创建了一项新 Issue`;
+      iconToken = "pin_outlined";
+    } else {
+      content = `${authorInfo} 更新了这项 Issue`;
+      iconToken = "replace_outlined";
+    }
 
     return {
       tag: "div",
@@ -165,8 +192,8 @@ export class CardBuilder {
       },
       icon: {
         tag: "standard_icon",
-        token: "yes_outlined",
-        color: "blue",
+        token: iconToken,
+        color: iconColor,
       },
     };
   }
