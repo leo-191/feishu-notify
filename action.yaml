@@ -1,5 +1,9 @@
 name: Notify to Feishu
 description: "Send GitHub event notifications to Feishu (Lark) via webhook"
+branding:
+  icon: "message-circle"
+  color: "blue"
+
 inputs:
   feishu_webhook:
     description: "Feishu webhook URL for sending notifications"
