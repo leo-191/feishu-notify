@@ -19,8 +19,7 @@ export class FeishuBotClient {
         console.error("飞书消息发送失败: ", response.data);
         throw new Error(`飞书 API 返回错误: ${response.data.msg}`);
       }
-
-      console.log("飞书消息发送成功");
+      console.log("飞书消息发送成功:\n", JSON.stringify(payload));
     } catch (error) {
       console.error("发送飞书消息时发生错误: ", error);
       throw error;
