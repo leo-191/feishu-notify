@@ -24,7 +24,8 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildPRSummary(pr.action, pr.state, pr.merged, pr),
-          ...(pr.body !== ""
+          ...((pr.action === "opened" || pr.action === "ready_for_review") &&
+          pr.body !== ""
             ? [{ tag: "hr" }, this.buildCommentElement(pr.body)]
             : []),
           this.buildURLButton(pr.html_url),
@@ -53,7 +54,7 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildIssueSummary(issue.action, issue.state, issue),
-          ...(issue.body !== ""
+          ...(issue.action === "opened" && issue.body !== ""
             ? [{ tag: "hr" }, this.buildCommentElement(issue.body)]
             : []),
           this.buildURLButton(issue.html_url),
@@ -130,6 +131,7 @@ export class CardBuilder {
     if (merged) {
       content = `${authorInfo} 合并了这项 Pull request ${branchInfo}`;
       iconToken = "yes_outlined";
+      iconColor = "green";
     } else if (state === "closed" && !merged) {
       content = `${authorInfo} 关闭了这项 Pull request ${branchInfo}`;
       iconToken = "more-close_outlined";
@@ -137,7 +139,7 @@ export class CardBuilder {
     } else if (action === "reopened") {
       content = `${authorInfo} 重新打开了这项 Pull request ${branchInfo}`;
       iconToken = "replace_outlined";
-    } else if (action === "opened" || "ready_for_review") {
+    } else if (action === "opened" || action === "ready_for_review") {
       content = `${authorInfo} 创建了一项新 Pull request ${branchInfo}`;
     } else if (action === "review_requested") {
       content = `${authorInfo} 请求对这项 Pull request 开展代码审查${branchInfo}`;
@@ -173,6 +175,7 @@ export class CardBuilder {
     if (state === "closed") {
       content = `${authorInfo} 关闭了这项 Issue`;
       iconToken = "yes_outlined";
+      iconColor = "green";
     } else if (action === "reopened") {
       content = `${authorInfo} 重新打开了这项 Issue`;
       iconToken = "replace_outlined";
