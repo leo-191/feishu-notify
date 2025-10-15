@@ -12,9 +12,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Run notify script
+    - name: Run notification action
       env:
         FEISHU_WEBHOOK: ${{ inputs.feishu_webhook }}
         GITHUB_EVENT_PATH: ${{ github.event_path }}
-      run: node dist/index.js --event-type ${{ github.event_name }}
+      run: |
+        npm ci
+        node dist/index.js --event-type ${{ github.event_name }}
+      working-directory: ${{ github.action_path }}
       shell: bash
