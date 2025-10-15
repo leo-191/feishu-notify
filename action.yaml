@@ -6,39 +6,15 @@ branding:
 
 inputs:
   feishu_webhook:
-    description: "Feishu webhook URL for sending notifications"
+    description: "Feishu webhook URL"
     required: true
 
 runs:
   using: "composite"
   steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Print GitHub Event Data
-      run: |
-        echo "=== GitHub Event Data ==="
-        cat $GITHUB_EVENT_PATH
-        echo "=== End of Event Data ==="
-      shell: bash
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: "20"
-
-    - name: Install Dependencies
-      run: npm ci
-      shell: bash
-
-    - name: Build TypeScript
-      run: npm run build
-      shell: bash
-
-    - name: Notify to Feishu
+    - name: Run notify script
       env:
         FEISHU_WEBHOOK: ${{ inputs.feishu_webhook }}
         GITHUB_EVENT_PATH: ${{ github.event_path }}
-      run: npm run handle -- --event-type ${{ github.event_name }}
+      run: node dist/index.js --event-type ${{ github.event_name }}
       shell: bash
-
