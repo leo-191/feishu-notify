@@ -1,0 +1,1 @@
+{"version":3,"file":"client.d.ts","sourceRoot":"","sources":["../../src/feishu/client.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,oBAAoB,EAAE,MAAM,SAAS,CAAC;AAE/C,qBAAa,eAAe;IAC1B,OAAO,CAAC,UAAU,CAAS;gBAEf,UAAU,EAAE,MAAM;IAOxB,QAAQ,CAAC,OAAO,EAAE,oBAAoB,GAAG,OAAO,CAAC,IAAI,CAAC;CAc7D"}
