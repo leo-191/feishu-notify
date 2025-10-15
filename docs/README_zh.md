@@ -1,16 +1,14 @@
-# Notify to Feishu Action
+[github-repo]: https://github.com/leo-191/feishu-notify
+[badge-svg]: https://img.shields.io/badge/Marketplace-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github
+[marketplace]: https://github.com/marketplace/actions/notify-to-feishu
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-  <a href="https://github.com/marketplace/actions/notify-to-feishu" target="_blank" rel="noopener noreferrer">
-    <img
-      src="https://img.shields.io/badge/Marketplace-Notify%20to%20Feishu-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github"
-      alt="GitHub Marketplace"
-    >
-  </a>
+# Notify to Feishu [![Notify to Feishu][badge-svg]][marketplace]
 
+<div align="right">
   <a href="../README.md">
     English
   </a>
+  <span>  •  中文<span>
 </div>
 
 一款 GitHub Action，可自动将 GitHub 事件（如 PR、Issue、评论等）通知到飞书（Feishu）群聊中。

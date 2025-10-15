@@ -1,13 +1,11 @@
-# Notify to Feishu Action
+[github-repo]: https://github.com/leo-191/feishu-notify
+[badge-svg]: https://img.shields.io/badge/Marketplace-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github
+[marketplace]: https://github.com/marketplace/actions/notify-to-feishu
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-  <a href="https://github.com/marketplace/actions/notify-to-feishu" target="_blank" rel="noopener noreferrer">
-    <img
-      src="https://img.shields.io/badge/Marketplace-Notify%20to%20Feishu-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=github"
-      alt="GitHub Marketplace"
-    >
-  </a>
+# Notify to Feishu [![Notify to Feishu][badge-svg]][marketplace]
 
+<div align="right">
+  <span>Engligh  •  <span>
   <a href="/docs/README_zh.md">
     中文
   </a>
