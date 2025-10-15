@@ -40,7 +40,6 @@ Create a workflow file in your GitHub repository (e.g., `.github/workflows/feish
 name: Feishu Notification
 on:
   # List of events to listen to (adjust as needed)
-on:
   pull_request:
     types:
       [
