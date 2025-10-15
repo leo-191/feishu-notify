@@ -10,6 +10,7 @@
     中文
   </a>
 </div>
+<br/>
 
 A GitHub Action that automatically sends GitHub event notifications (e.g., PRs, Issues, comments) to a Feishu (Lark) group chat.
 

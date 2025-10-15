@@ -10,6 +10,7 @@
   </a>
   <span>  •  中文<span>
 </div>
+<br/>
 
 一款 GitHub Action，可自动将 GitHub 事件（如 PR、Issue、评论等）通知到飞书（Feishu）群聊中。
 
