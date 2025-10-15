@@ -137,16 +137,17 @@ export class CardBuilder {
       iconToken = "more-close_outlined";
       iconColor = "red";
     } else if (action === "reopened") {
-      content = `${authorInfo} 重新打开了这项 Pull request ${branchInfo}`;
       iconToken = "replace_outlined";
+      content = `${authorInfo} 重新打开了这项 Pull request ${branchInfo}`;
     } else if (action === "opened" || action === "ready_for_review") {
+      iconToken = "privacy-location_outlined";
       content = `${authorInfo} 创建了一项新 Pull request ${branchInfo}`;
     } else if (action === "review_requested") {
-      content = `${authorInfo} 请求对这项 Pull request 开展代码审查${branchInfo}`;
       iconToken = "member-new_outlined";
+      content = `${authorInfo} 请求对这项 Pull request 开展代码审查${branchInfo}`;
     } else {
-      content = `${authorInfo} 更新了这项 Pull request`;
       iconToken = "replace_outlined";
+      content = `${authorInfo} 更新了这项 Pull request`;
     }
 
     return {
