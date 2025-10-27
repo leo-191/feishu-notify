@@ -111,11 +111,11 @@ class CardBuilder {
         }
         else if (action === "review_requested") {
             iconToken = "member-new_outlined";
-            content = `${authorInfo} 请求对这项 Pull request 开展代码审查${branchInfo}`;
+            content = `${authorInfo} 请求对这项 Pull request 开展代码审查 ${branchInfo}`;
         }
         else {
             iconToken = "replace_outlined";
-            content = `${authorInfo} 更新了这项 Pull request`;
+            content = `${authorInfo} 更新了这项 Pull request ${branchInfo}`;
         }
         return {
             tag: "div",
