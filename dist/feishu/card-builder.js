@@ -17,7 +17,7 @@ class CardBuilder {
                     this.buildPRSummary(pr.action, pr.state, pr.merged, pr),
                     ...((pr.action === "opened" || pr.action === "ready_for_review") &&
                         pr.body !== ""
-                        ? [{ tag: "hr" }, this.buildCommentElement(pr.body)]
+                        ? [{ tag: "hr" }, this.buildBodyElement(pr.body)]
                         : []),
                     this.buildURLButton(pr.html_url),
                 ],
@@ -39,7 +39,7 @@ class CardBuilder {
                 elements: [
                     this.buildIssueSummary(issue.action, issue.state, issue),
                     ...(issue.action === "opened" && issue.body !== ""
-                        ? [{ tag: "hr" }, this.buildCommentElement(issue.body)]
+                        ? [{ tag: "hr" }, this.buildBodyElement(issue.body)]
                         : []),
                     this.buildURLButton(issue.html_url),
                 ],
@@ -60,8 +60,28 @@ class CardBuilder {
             body: {
                 elements: [
                     this.buildCommentSummary(comment),
-                    this.buildCommentElement(comment.body),
+                    this.buildBodyElement(comment.body),
                     this.buildURLButton(comment.html_url),
+                ],
+            },
+        };
+        return {
+            msg_type: "interactive",
+            card: card,
+        };
+    }
+    buildReleaseCard(release) {
+        const card = {
+            schema: "2.0",
+            header: {
+                title: this.getHeaderTitle(release.full_name, release.title, "release"),
+                template: "blue",
+            },
+            body: {
+                elements: [
+                    this.buildReleaseSummary(release),
+                    this.buildBodyElement(release.body),
+                    this.buildURLButton(release.html_url),
                 ],
             },
         };
@@ -74,16 +94,33 @@ class CardBuilder {
      * 构建头部标题
      */
     getHeaderTitle(fullName, title, eventType, number) {
-        if (eventType === "pull_request")
-            return {
-                tag: "plain_text",
-                content: `[${fullName}] ${title} (PR #${number})`,
-            };
-        else
-            return {
-                tag: "plain_text",
-                content: `[${fullName}] ${title} (Issue #${number})`,
-            };
+        switch (eventType) {
+            case "pull_request": {
+                const suffix = number ? ` (PR #${number})` : "";
+                return {
+                    tag: "plain_text",
+                    content: `[${fullName}] ${title}${suffix}`,
+                };
+            }
+            case "issues": {
+                const suffix = number ? ` (Issue #${number})` : "";
+                return {
+                    tag: "plain_text",
+                    content: `[${fullName}] ${title}${suffix}`,
+                };
+            }
+            case "release": {
+                return {
+                    tag: "plain_text",
+                    content: `[${fullName}] ${title}`,
+                };
+            }
+            default:
+                return {
+                    tag: "plain_text",
+                    content: `[${fullName}] ${title} (${eventType})`,
+                };
+        }
     }
     buildPRSummary(action, state, merged, pr) {
         let content = "";
@@ -181,7 +218,30 @@ class CardBuilder {
             },
         };
     }
-    buildCommentElement(comment) {
+    buildReleaseSummary(release) {
+        const authorInfo = `[@${release.sender.login}](${release.sender.html_url})`;
+        const tagInfo = `(<text_tag color='neutral'>${release.tag_name}</text_tag>)`;
+        let content;
+        if (release.prerelease) {
+            content = `${authorInfo} 预发布了一个新版本 ${tagInfo}：`;
+        }
+        else {
+            content = `${authorInfo} 发布了一个新版本 ${tagInfo}：`;
+        }
+        return {
+            tag: "div",
+            text: {
+                tag: "lark_md",
+                content: content,
+            },
+            icon: {
+                tag: "standard_icon",
+                token: "start_outlined",
+                color: "blue",
+            },
+        };
+    }
+    buildBodyElement(comment) {
         const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
         return {
             tag: "markdown",

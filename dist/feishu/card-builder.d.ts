@@ -1,4 +1,4 @@
-import { FeishuWebhookPayload, GitHubCommentInfo, GithubIssueInfo, GithubPRInfo } from "./types";
+import { FeishuWebhookPayload, GitHubCommentInfo, GithubIssueInfo, GithubPRInfo, GitHubReleaseInfo } from "./types";
 export declare class CardBuilder {
     /**
      * 根据PR信息构建飞书消息卡片
@@ -6,6 +6,7 @@ export declare class CardBuilder {
     buildPRCard(pr: GithubPRInfo): FeishuWebhookPayload;
     buildIssueCard(issue: GithubIssueInfo): FeishuWebhookPayload;
     buildCommentCard(comment: GitHubCommentInfo): FeishuWebhookPayload;
+    buildReleaseCard(release: GitHubReleaseInfo): FeishuWebhookPayload;
     /**
      * 构建头部标题
      */
@@ -13,7 +14,8 @@ export declare class CardBuilder {
     private buildPRSummary;
     private buildIssueSummary;
     private buildCommentSummary;
-    private buildCommentElement;
+    private buildReleaseSummary;
+    private buildBodyElement;
     private buildTimestampElement;
     /**
      * 构建操作按钮
