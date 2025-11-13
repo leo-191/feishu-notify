@@ -45,11 +45,27 @@ export interface GithubIssueInfo {
   updated_at: string;
 }
 
-export interface GitHubCommentInfo{
+export interface GitHubCommentInfo {
   action: string;
   number: number;
   issue_type: "issues" | "pull_request";
   full_name: string;
+  title: string;
+  body: string;
+  html_url: string;
+  sender: {
+    login: string;
+    html_url: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GitHubReleaseInfo {
+  action: string;
+  full_name: string;
+  prerelease: boolean;
+  tag_name: string;
   title: string;
   body: string;
   html_url: string;

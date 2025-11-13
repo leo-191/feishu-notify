@@ -4,6 +4,7 @@ import {
   GitHubCommentInfo,
   GithubIssueInfo,
   GithubPRInfo,
+  GitHubReleaseInfo,
 } from "./types";
 export class CardBuilder {
   /**
@@ -26,7 +27,7 @@ export class CardBuilder {
           this.buildPRSummary(pr.action, pr.state, pr.merged, pr),
           ...((pr.action === "opened" || pr.action === "ready_for_review") &&
           pr.body !== ""
-            ? [{ tag: "hr" }, this.buildCommentElement(pr.body)]
+            ? [{ tag: "hr" }, this.buildBodyElement(pr.body)]
             : []),
           this.buildURLButton(pr.html_url),
         ],
@@ -55,7 +56,7 @@ export class CardBuilder {
         elements: [
           this.buildIssueSummary(issue.action, issue.state, issue),
           ...(issue.action === "opened" && issue.body !== ""
-            ? [{ tag: "hr" }, this.buildCommentElement(issue.body)]
+            ? [{ tag: "hr" }, this.buildBodyElement(issue.body)]
             : []),
           this.buildURLButton(issue.html_url),
         ],
@@ -83,8 +84,30 @@ export class CardBuilder {
       body: {
         elements: [
           this.buildCommentSummary(comment),
-          this.buildCommentElement(comment.body),
+          this.buildBodyElement(comment.body),
           this.buildURLButton(comment.html_url),
+        ],
+      },
+    };
+
+    return {
+      msg_type: "interactive",
+      card: card,
+    };
+  }
+
+  buildReleaseCard(release: GitHubReleaseInfo): FeishuWebhookPayload {
+    const card: FeishuCard = {
+      schema: "2.0",
+      header: {
+        title: this.getHeaderTitle(release.full_name, release.title, "release"),
+        template: "blue",
+      },
+      body: {
+        elements: [
+          this.buildReleaseSummary(release),
+          this.buildBodyElement(release.body),
+          this.buildURLButton(release.html_url),
         ],
       },
     };
@@ -101,19 +124,36 @@ export class CardBuilder {
   private getHeaderTitle(
     fullName: string,
     title: string,
-    eventType: "pull_request" | "issues",
-    number: number
+    eventType: "pull_request" | "issues" | "release",
+    number?: number
   ): BaseText {
-    if (eventType === "pull_request")
-      return {
-        tag: "plain_text",
-        content: `[${fullName}] ${title} (PR #${number})`,
-      };
-    else
-      return {
-        tag: "plain_text",
-        content: `[${fullName}] ${title} (Issue #${number})`,
-      };
+    switch (eventType) {
+      case "pull_request": {
+        const suffix = number ? ` (PR #${number})` : "";
+        return {
+          tag: "plain_text",
+          content: `[${fullName}] ${title}${suffix}`,
+        };
+      }
+      case "issues": {
+        const suffix = number ? ` (Issue #${number})` : "";
+        return {
+          tag: "plain_text",
+          content: `[${fullName}] ${title}${suffix}`,
+        };
+      }
+      case "release": {
+        return {
+          tag: "plain_text",
+          content: `[${fullName}] ${title}`,
+        };
+      }
+      default:
+        return {
+          tag: "plain_text",
+          content: `[${fullName}] ${title} (${eventType})`,
+        };
+    }
   }
 
   private buildPRSummary(
@@ -220,17 +260,41 @@ export class CardBuilder {
     };
   }
 
-  private buildCommentElement(comment: string): BaseCardElement {
+  private buildReleaseSummary(release: GitHubReleaseInfo): BaseCardElement {
+    const authorInfo = `[@${release.sender.login}](${release.sender.html_url})`;
+    const tagInfo = `(<text_tag color='neutral'>${release.tag_name}</text_tag>)`;
+    let content: string;
+    if (release.prerelease) {
+      content = `${authorInfo} 预发布了一个新版本 ${tagInfo}：`;
+    } else {
+      content = `${authorInfo} 发布了一个新版本 ${tagInfo}：`;
+    }
+
+    return {
+      tag: "div",
+      text: {
+        tag: "lark_md",
+        content: content,
+      },
+      icon: {
+        tag: "standard_icon",
+        token: "start_outlined",
+        color: "blue",
+      },
+    };
+  }
+
+  private buildBodyElement(comment: string): BaseCardElement {
     const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
 
     return {
       tag: "markdown",
       content: comment.replace(imageRegex, (match, alt, url) => {
-      const escapedAlt = alt.replace(/"/g, "&quot;");
-      const escapedUrl = url.replace(/"/g, "&quot;");
+        const escapedAlt = alt.replace(/"/g, "&quot;");
+        const escapedUrl = url.replace(/"/g, "&quot;");
 
-      return `<img src="${escapedUrl}" alt="${escapedAlt}" />`;
-    }),
+        return `<img src="${escapedUrl}" alt="${escapedAlt}" />`;
+      }),
       icon: {
         tag: "standard_icon",
         token: "chat_outlined",

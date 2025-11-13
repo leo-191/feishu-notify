@@ -1,9 +1,10 @@
-import { FeishuBotClient } from "./feishu/client";
 import { CardBuilder } from "./feishu/card-builder";
+import { FeishuBotClient } from "./feishu/client";
 import {
-  GithubPRInfo,
-  GithubIssueInfo,
   GitHubCommentInfo,
+  GithubIssueInfo,
+  GithubPRInfo,
+  GitHubReleaseInfo
 } from "./feishu/types";
 
 function getEventTypeFromArgs(): string {
@@ -15,8 +16,12 @@ function getEventTypeFromArgs(): string {
   }
 
   const eventType = args[eventTypeIndex + 1];
-  if (!["pull_request", "issues", "issue_comment"].includes(eventType)) {
-    throw new Error("事件类型必须是 pull_request, issues 或 issue_comment");
+  if (
+    !["pull_request", "issues", "issue_comment", "release"].includes(eventType)
+  ) {
+    throw new Error(
+      `事件类型必须是 pull_request, issues, issue_comment 或 release，传入参数为 ${eventType}`
+    );
   }
 
   return eventType;
@@ -94,6 +99,27 @@ const parseCommentInfo = (data: any): GitHubCommentInfo => {
   return commentInfo;
 };
 
+const parseReleaseInfo = (data: any): GitHubReleaseInfo => {
+  const releaseInfo: GitHubReleaseInfo = {
+    action: data.action,
+    full_name: data.repository.full_name,
+    prerelease: data.release.prerelease,
+    tag_name: data.release.tag_name,
+    title: data.release.name,
+    body: data.release.body || "",
+    html_url: data.release.html_url,
+    sender: {
+      login: data.sender.login,
+      html_url: data.sender.html_url,
+    },
+    created_at: data.release.created_at,
+    updated_at: data.release.updated_at,
+  };
+
+  console.log("处理 Release Comment 信息:", releaseInfo);
+  return releaseInfo;
+};
+
 async function run() {
   try {
     const eventType = getEventTypeFromArgs();
@@ -129,6 +155,11 @@ async function run() {
         card = cardBuilder.buildCommentCard(parseCommentInfo(eventData));
         break;
       }
+      case "release": {
+        const cardBuilder = new CardBuilder();
+        card = cardBuilder.buildReleaseCard(parseReleaseInfo(eventData));
+        break;
+        }
       default:
         throw new Error(`未知的事件类型: ${eventType}`);
         break;
