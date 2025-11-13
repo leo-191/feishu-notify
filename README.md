@@ -55,12 +55,16 @@ on:
     types: [opened, closed, reopened]
   issue_comment:
     types: [created]
+  release:
+    types: [published]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    # Filter out draft PRs
-    if: github.event.pull_request.draft != true
+    # Filter out draft PRs and release
+    if: |
+      (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+      (github.event_name == 'release' && !github.event.release.draft)
     steps:
       - name: Send notification to Feishu
         uses: leo-191/feishu-notify@v1

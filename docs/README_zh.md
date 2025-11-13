@@ -55,12 +55,16 @@ on:
     types: [opened, closed, reopened]
   issue_comment:
     types: [created]
+  release:
+    types: [published]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    # 过滤草稿状态的 PR
-    if: github.event.pull_request.draft != true
+    # 过滤草稿状态的 PR 和 release
+    if: |
+      (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+      (github.event_name == 'release' && !github.event.release.draft)
     steps:
       - name: 发送通知到飞书
         uses: leo-191/feishu-notify@v1
