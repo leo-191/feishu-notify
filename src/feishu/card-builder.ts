@@ -221,9 +221,16 @@ export class CardBuilder {
   }
 
   private buildCommentElement(comment: string): BaseCardElement {
+    const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
+
     return {
       tag: "markdown",
-      content: comment,
+      content: comment.replace(imageRegex, (match, alt, url) => {
+      const escapedAlt = alt.replace(/"/g, "&quot;");
+      const escapedUrl = url.replace(/"/g, "&quot;");
+
+      return `<img src="${escapedUrl}" alt="${escapedAlt}" />`;
+    }),
       icon: {
         tag: "standard_icon",
         token: "chat_outlined",
