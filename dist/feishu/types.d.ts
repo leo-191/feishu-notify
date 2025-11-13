@@ -56,4 +56,19 @@ export interface GitHubCommentInfo {
     created_at: string;
     updated_at: string;
 }
+export interface GitHubReleaseInfo {
+    action: string;
+    full_name: string;
+    prerelease: boolean;
+    tag_name: string;
+    title: string;
+    body: string;
+    html_url: string;
+    sender: {
+        login: string;
+        html_url: string;
+    };
+    created_at: string;
+    updated_at: string;
+}
 //# sourceMappingURL=types.d.ts.map
