@@ -52,7 +52,7 @@ const parsePRInfo = (data: any): GithubPRInfo => {
     },
     reviewers:
       data.pull_request.requested_reviewers?.map((r: any) => ({
-        name: r.login,
+        login: r.login,
         html_url: r.html_url,
       })) ?? undefined,
   };

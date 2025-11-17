@@ -28,7 +28,7 @@ export interface GithubPRInfo {
     label: string;
   };
   reviewers?: {
-    name: string;
+    login: string;
     html_url: string;
   }[];
 }
@@ -79,4 +79,26 @@ export interface GitHubReleaseInfo {
   };
   created_at: string;
   updated_at: string;
+}
+
+export interface GithubReviewInfo {
+  action: string;
+  number: number;
+  full_name: string;
+  title: string;
+  body: string;
+  html_url: string;
+  reviewer: {
+    login: string;
+    html_url: string;
+  };
+  created_at: string;
+  updated_at: string;
+  base: {
+    label: string;
+  };
+  head: {
+    label: string;
+  };
+  state: string;
 }

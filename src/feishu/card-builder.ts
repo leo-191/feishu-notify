@@ -186,7 +186,7 @@ export class CardBuilder {
       iconToken = "member-new_outlined";
       const reviewersInfo = pr.reviewers
         ?.map((reviewer) => {
-          return `[@${reviewer.name}](${reviewer.html_url})`;
+          return `[@${reviewer.login}](${reviewer.html_url})`;
         })
         .join(" ");
       content = `${authorInfo} 请求 ${reviewersInfo} 对这项 Pull request 开展代码审查 ${branchInfo}`;
