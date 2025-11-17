@@ -51,6 +51,10 @@ on:
         review_requested,
         synchronize,
       ]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
   issues:
     types: [opened, closed, reopened]
   issue_comment:
