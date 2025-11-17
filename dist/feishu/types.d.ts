@@ -48,7 +48,7 @@ export interface GithubIssueInfo {
 export interface GitHubCommentInfo {
     action: string;
     number: number;
-    issue_type: "issues" | "pull_request";
+    type: "issues" | "pull_request" | "review";
     full_name: string;
     title: string;
     body: string;
@@ -94,6 +94,6 @@ export interface GithubReviewInfo {
     head: {
         label: string;
     };
-    state: string;
+    state: "commented" | "approved" | "request_changes";
 }
 //# sourceMappingURL=types.d.ts.map
