@@ -252,11 +252,11 @@ export class CardBuilder {
 
     if (state === "approved") {
       content = `${reviewerInfo} 审查并同意了这项 Pull request ${branchInfo}`;
-      iconToken = "yes_outlined";
+      iconToken = "readinfo_outlined";
       iconColor = "green";
     } else if (state === "commented") {
       content = `${reviewerInfo} 审查并留下了对这项 Pull request ${branchInfo} 的评论`;
-      iconToken = "chat_outlined";
+      iconToken = "bell_outlined";
     } else if (state === "changes_requested") {
       content = `${reviewerInfo} 审查并认为这项 Pull request ${branchInfo} 需要改动`;
       iconToken = "feedback_outlined";
