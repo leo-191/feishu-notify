@@ -12,11 +12,13 @@ function getEventTypeFromArgs() {
     if (![
         "pull_request",
         "pull_request_review",
+        "pull_request_review_comment",
         "issues",
         "issue_comment",
         "release",
     ].includes(eventType)) {
-        throw new Error(`事件类型必须是 pull_request, pull_request_review, issues, issue_comment 或 release，传入参数为 ${eventType}`);
+        throw new Error(`事件类型必须是 pull_request, pull_request_review, pull_request_review_comment, \
+      issues, issue_comment 或 release，传入参数为 ${eventType}`);
     }
     return eventType;
 }
@@ -70,11 +72,11 @@ const parseIssueInfo = (data) => {
     console.log("处理 Issue 信息:", issueInfo);
     return issueInfo;
 };
-const parseCommentInfo = (data) => {
+const parseIssueCommentInfo = (data) => {
     const commentInfo = {
         action: data.action,
         number: data.issue.number,
-        issue_type: data.issue.pull_request ? "pull_request" : "issues",
+        type: data.issue.pull_request ? "pull_request" : "issues",
         full_name: data.repository.full_name,
         title: data.issue.title,
         body: data.comment.body || "",
@@ -133,6 +135,25 @@ const parseReviewInfo = (data) => {
     console.log("处理 Review 信息:", reviewInfo);
     return reviewInfo;
 };
+const parseReviewCommentInfo = (data) => {
+    const commentInfo = {
+        action: data.action,
+        number: data.pull_request.number,
+        type: "review",
+        full_name: data.repository.full_name,
+        title: data.pull_request.title,
+        body: data.comment.body || "",
+        html_url: data.comment.html_url,
+        sender: {
+            login: data.sender.login,
+            html_url: data.sender.html_url,
+        },
+        created_at: data.comment.created_at,
+        updated_at: data.comment.updated_at,
+    };
+    console.log("处理 Review Comment 信息:", commentInfo);
+    return commentInfo;
+};
 async function run() {
     try {
         const eventType = getEventTypeFromArgs();
@@ -155,7 +176,15 @@ async function run() {
             }
             case "pull_request_review": {
                 const cardBuilder = new card_builder_1.CardBuilder();
-                card = cardBuilder.buildReviewCard(parseReviewInfo(eventData));
+                const reviewData = parseReviewInfo(eventData);
+                if (reviewData.state === "commented" && reviewData.body === "")
+                    process.exit(0);
+                card = cardBuilder.buildReviewCard(reviewData);
+                break;
+            }
+            case "pull_request_review_comment": {
+                const cardBuilder = new card_builder_1.CardBuilder();
+                card = cardBuilder.buildCommentCard(parseReviewCommentInfo(eventData));
                 break;
             }
             case "issues": {
@@ -165,7 +194,7 @@ async function run() {
             }
             case "issue_comment": {
                 const cardBuilder = new card_builder_1.CardBuilder();
-                card = cardBuilder.buildCommentCard(parseCommentInfo(eventData));
+                card = cardBuilder.buildCommentCard(parseIssueCommentInfo(eventData));
                 break;
             }
             case "release": {

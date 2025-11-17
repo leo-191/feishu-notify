@@ -32,7 +32,7 @@ class CardBuilder {
         const card = {
             schema: "2.0",
             header: {
-                title: this.getHeaderTitle(review.full_name, review.title, "pull_request", review.number),
+                title: this.getHeaderTitle(review.full_name, review.title, "review", review.number),
                 template: "blue",
             },
             body: {
@@ -76,7 +76,7 @@ class CardBuilder {
         const card = {
             schema: "2.0",
             header: {
-                title: this.getHeaderTitle(comment.full_name, comment.title, comment.issue_type, comment.number),
+                title: this.getHeaderTitle(comment.full_name, comment.title, comment.type, comment.number),
                 template: "blue",
             },
             body: {
@@ -117,7 +117,8 @@ class CardBuilder {
      */
     getHeaderTitle(fullName, title, eventType, number) {
         switch (eventType) {
-            case "pull_request": {
+            case "pull_request":
+            case "review": {
                 const suffix = number ? ` (PR #${number})` : "";
                 return {
                     tag: "plain_text",
@@ -202,12 +203,12 @@ class CardBuilder {
         const branchInfo = `(<text_tag color='neutral'>${review.head.label}</text_tag> → <text_tag color='neutral'>${review.base.label}</text_tag> )`;
         if (state === "approved") {
             content = `${reviewerInfo} 审查并同意了这项 Pull request ${branchInfo}`;
-            iconToken = "yes_outlined";
+            iconToken = "readinfo_outlined";
             iconColor = "green";
         }
         else if (state === "commented") {
             content = `${reviewerInfo} 审查并留下了对这项 Pull request ${branchInfo} 的评论`;
-            iconToken = "chat_outlined";
+            iconToken = "bell_outlined";
         }
         else if (state === "changes_requested") {
             content = `${reviewerInfo} 审查并认为这项 Pull request ${branchInfo} 需要改动`;
