@@ -27,6 +27,10 @@ export interface GithubPRInfo {
   head: {
     label: string;
   };
+  reviewers?: {
+    name: string;
+    html_url: string;
+  }[];
 }
 
 export interface GithubIssueInfo {
