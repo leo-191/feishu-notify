@@ -4,7 +4,7 @@ import {
   GitHubCommentInfo,
   GithubIssueInfo,
   GithubPRInfo,
-  GitHubReleaseInfo
+  GitHubReleaseInfo,
 } from "./feishu/types";
 
 function getEventTypeFromArgs(): string {
@@ -50,6 +50,11 @@ const parsePRInfo = (data: any): GithubPRInfo => {
     head: {
       label: data.pull_request.head.label,
     },
+    reviewers:
+      data.pull_request.requested_reviewers?.map((r: any) => ({
+        name: r.login,
+        html_url: r.html_url,
+      })) ?? undefined,
   };
   console.log("处理 PR 信息:", PRInfo);
 
@@ -159,7 +164,7 @@ async function run() {
         const cardBuilder = new CardBuilder();
         card = cardBuilder.buildReleaseCard(parseReleaseInfo(eventData));
         break;
-        }
+      }
       default:
         throw new Error(`未知的事件类型: ${eventType}`);
         break;
