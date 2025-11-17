@@ -48,7 +48,7 @@ export class CardBuilder {
         title: this.getHeaderTitle(
           review.full_name,
           review.title,
-          "pull_request",
+          "review",
           review.number
         ),
         template: "blue",
@@ -106,7 +106,7 @@ export class CardBuilder {
         title: this.getHeaderTitle(
           comment.full_name,
           comment.title,
-          comment.issue_type,
+          comment.type,
           comment.number
         ),
         template: "blue",
@@ -154,11 +154,12 @@ export class CardBuilder {
   private getHeaderTitle(
     fullName: string,
     title: string,
-    eventType: "pull_request" | "issues" | "release",
+    eventType: "pull_request" | "issues" | "review" | "release",
     number?: number
   ): BaseText {
     switch (eventType) {
-      case "pull_request": {
+      case "pull_request":
+      case "review": {
         const suffix = number ? ` (PR #${number})` : "";
         return {
           tag: "plain_text",
