@@ -37,6 +37,10 @@ const parsePRInfo = (data) => {
         head: {
             label: data.pull_request.head.label,
         },
+        reviewers: data.pull_request.requested_reviewers?.map((r) => ({
+            name: r.login,
+            html_url: r.html_url,
+        })) ?? undefined,
     };
     console.log("处理 PR 信息:", PRInfo);
     return PRInfo;
