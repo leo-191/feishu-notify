@@ -5,6 +5,7 @@ import {
   GithubIssueInfo,
   GithubPRInfo,
   GitHubReleaseInfo,
+  GithubReviewInfo,
 } from "./types";
 export class CardBuilder {
   /**
@@ -30,6 +31,35 @@ export class CardBuilder {
             ? [{ tag: "hr" }, this.buildBodyElement(pr.body)]
             : []),
           this.buildURLButton(pr.html_url),
+        ],
+      },
+    };
+
+    return {
+      msg_type: "interactive",
+      card: card,
+    };
+  }
+
+  buildReviewCard(review: GithubReviewInfo): FeishuWebhookPayload {
+    const card: FeishuCard = {
+      schema: "2.0",
+      header: {
+        title: this.getHeaderTitle(
+          review.full_name,
+          review.title,
+          "pull_request",
+          review.number
+        ),
+        template: "blue",
+      },
+      body: {
+        elements: [
+          this.buildReviewSummary(review.action, review.state, review),
+          ...(review.action === "submitted" && review.body !== ""
+            ? [{ tag: "hr" }, this.buildBodyElement(review.body)]
+            : []),
+          this.buildURLButton(review.html_url),
         ],
       },
     };
@@ -193,6 +223,47 @@ export class CardBuilder {
     } else {
       iconToken = "replace_outlined";
       content = `${authorInfo} 更新了这项 Pull request ${branchInfo}`;
+    }
+
+    return {
+      tag: "div",
+      text: {
+        tag: "lark_md",
+        content: content,
+      },
+      icon: {
+        tag: "standard_icon",
+        token: iconToken,
+        color: iconColor,
+      },
+    };
+  }
+
+  private buildReviewSummary(
+    action: string,
+    state: string,
+    review: GithubReviewInfo
+  ): BaseCardElement {
+    let content = "";
+    let iconToken = "";
+    let iconColor = "blue";
+    const reviewerInfo = `[@${review.reviewer.login}](${review.reviewer.html_url})`;
+    const branchInfo = `(<text_tag color='neutral'>${review.head.label}</text_tag> → <text_tag color='neutral'>${review.base.label}</text_tag> )`;
+
+    if (state === "approved") {
+      content = `${reviewerInfo} 审查并同意了这项 Pull request ${branchInfo}`;
+      iconToken = "yes_outlined";
+      iconColor = "green";
+    } else if (state === "commented") {
+      content = `${reviewerInfo} 审查并留下了对这项 Pull request ${branchInfo} 的评论`;
+      iconToken = "chat_outlined";
+    } else if (state === "changes_requested") {
+      content = `${reviewerInfo} 审查并认为这项 Pull request ${branchInfo} 需要改动`;
+      iconToken = "feedback_outlined";
+      iconColor = "red";
+    } else {
+      content = `${reviewerInfo} 更新了对这项 Pull request ${branchInfo} 的审查`;
+      iconToken = "replace_outlined";
     }
 
     return {
