@@ -9,8 +9,14 @@ function getEventTypeFromArgs() {
         throw new Error("需要通过 --event-type 指定事件类型");
     }
     const eventType = args[eventTypeIndex + 1];
-    if (!["pull_request", "issues", "issue_comment", "release"].includes(eventType)) {
-        throw new Error(`事件类型必须是 pull_request, issues, issue_comment 或 release，传入参数为 ${eventType}`);
+    if (![
+        "pull_request",
+        "pull_request_review",
+        "issues",
+        "issue_comment",
+        "release",
+    ].includes(eventType)) {
+        throw new Error(`事件类型必须是 pull_request, pull_request_review, issues, issue_comment 或 release，传入参数为 ${eventType}`);
     }
     return eventType;
 }
@@ -38,7 +44,7 @@ const parsePRInfo = (data) => {
             label: data.pull_request.head.label,
         },
         reviewers: data.pull_request.requested_reviewers?.map((r) => ({
-            name: r.login,
+            login: r.login,
             html_url: r.html_url,
         })) ?? undefined,
     };
@@ -102,6 +108,31 @@ const parseReleaseInfo = (data) => {
     console.log("处理 Release Comment 信息:", releaseInfo);
     return releaseInfo;
 };
+const parseReviewInfo = (data) => {
+    const reviewInfo = {
+        action: data.action,
+        number: data.pull_request.number,
+        full_name: data.pull_request.base.repo.full_name,
+        title: data.pull_request.title,
+        body: data.review.body || "",
+        html_url: data.review.html_url,
+        state: data.review.state,
+        created_at: data.review.submitted_at,
+        updated_at: data.review.updated_at,
+        base: {
+            label: data.pull_request.base.label,
+        },
+        head: {
+            label: data.pull_request.head.label,
+        },
+        reviewer: {
+            login: data.review.user.login,
+            html_url: data.review.user.html_url,
+        },
+    };
+    console.log("处理 Review 信息:", reviewInfo);
+    return reviewInfo;
+};
 async function run() {
     try {
         const eventType = getEventTypeFromArgs();
@@ -120,6 +151,11 @@ async function run() {
             case "pull_request": {
                 const cardBuilder = new card_builder_1.CardBuilder();
                 card = cardBuilder.buildPRCard(parsePRInfo(eventData));
+                break;
+            }
+            case "pull_request_review": {
+                const cardBuilder = new card_builder_1.CardBuilder();
+                card = cardBuilder.buildReviewCard(parseReviewInfo(eventData));
                 break;
             }
             case "issues": {
